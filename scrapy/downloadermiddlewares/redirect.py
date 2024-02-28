@@ -32,9 +32,15 @@ def _build_redirect_request(
     has_cookie_header = "Cookie" in redirect_request.headers
     has_authorization_header = "Authorization" in redirect_request.headers
     if has_cookie_header or has_authorization_header:
+        source_request_scheme = urlparse_cached(source_request).scheme
         source_request_netloc = urlparse_cached(source_request).netloc
+        redirect_request_scheme = urlparse_cached(redirect_request).scheme
         redirect_request_netloc = urlparse_cached(redirect_request).netloc
-        if source_request_netloc != redirect_request_netloc:
+        is_cross_origin = (
+            source_request_scheme != redirect_request_scheme
+            or source_request_netloc != redirect_request_netloc
+        )
+        if is_cross_origin:
             if has_cookie_header:
                 del redirect_request.headers["Cookie"]
             # https://fetch.spec.whatwg.org/#ref-for-cors-non-wildcard-request-header-name
